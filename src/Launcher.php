@@ -3,7 +3,7 @@
 namespace Launcher;
 
 use InvalidArgumentException;
-use Launcher\request\RequestContract;
+use Launcher\Request\RequestContract;
 use Launcher\Service\ServiceManager;
 
 /**

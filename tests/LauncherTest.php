@@ -3,8 +3,7 @@
 namespace Launcher\Tests;
 
 use Launcher\Launcher;
-use Launcher\request\BaseRequest;
-use Launcher\request\RequestContract;
+use Launcher\Request\BaseRequest;
 use PHPUnit\Framework\TestCase;
 
 class LauncherTest extends TestCase

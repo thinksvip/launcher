@@ -1,6 +1,6 @@
 <?php
 
-namespace Launcher\request;
+namespace Launcher\Request;
 
 use Launcher\request\RequestContract;
 

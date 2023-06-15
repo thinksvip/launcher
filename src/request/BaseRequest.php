@@ -1,8 +1,6 @@
 <?php
 
-namespace Launcher\Request;
-
-use Launcher\request\RequestContract;
+namespace Xincheng\Launcher\Request;
 
 /**
  * 基础请求类
@@ -16,5 +14,15 @@ abstract class BaseRequest implements RequestContract
     public function before(object $context): void
     {
 
+    }
+
+    public function options(): array
+    {
+        return [];
+    }
+
+    public function autoAuth(): bool
+    {
+        return true;
     }
 }

@@ -1,9 +1,9 @@
 <?php
 
-namespace Launcher\Tests;
+namespace XinCheng\Launcher\Tests;
 
-use Launcher\Launcher;
-use Launcher\Request\BaseRequest;
+use Xincheng\Launcher\Launcher;
+use Xincheng\Launcher\Request\BaseRequest;
 use PHPUnit\Framework\TestCase;
 
 class LauncherTest extends TestCase
@@ -57,16 +57,6 @@ class HttpServiceRequest extends BaseRequest
     {
         return 'GET';
     }
-
-    public function options(): array
-    {
-        return [];
-    }
-
-    public function before(object $context): void
-    {
-
-    }
 }
 
 class NacosServiceRequest extends BaseRequest
@@ -85,15 +75,5 @@ class NacosServiceRequest extends BaseRequest
     public function method(): string
     {
         return 'GET';
-    }
-
-    public function options(): array
-    {
-        return [];
-    }
-
-    public function before(object $context): void
-    {
-
     }
 }

@@ -1,12 +1,12 @@
 <?php
 
-namespace Launcher\Service;
+namespace Xincheng\Launcher\Service;
 
 use InvalidArgumentException;
-use Launcher\Exception\ServiceNotFoundException;
-use Launcher\Handler\HttpServiceHandler;
-use Launcher\Handler\NacosServiceHandler;
-use Launcher\Handler\ServiceHandler;
+use Xincheng\Launcher\Exception\ServiceNotFoundException;
+use Xincheng\Launcher\Handler\HttpServiceHandler;
+use Xincheng\Launcher\Handler\NacosServiceHandler;
+use Xincheng\Launcher\Handler\ServiceHandler;
 
 /**
  * 服务管理器

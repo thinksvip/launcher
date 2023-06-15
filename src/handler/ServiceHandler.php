@@ -1,8 +1,8 @@
 <?php
 
-namespace Launcher\Handler;
+namespace Xincheng\Launcher\Handler;
 
-use Launcher\request\RequestContract;
+use Xincheng\Launcher\request\RequestContract;
 
 /**
  * 服务处理器

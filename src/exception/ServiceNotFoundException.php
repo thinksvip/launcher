@@ -1,6 +1,6 @@
 <?php
 
-namespace Launcher\Exception;
+namespace Xincheng\Launcher\Exception;
 
 use RuntimeException;
 

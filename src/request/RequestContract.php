@@ -1,6 +1,6 @@
 <?php
 
-namespace Launcher\Request;
+namespace Xincheng\Launcher\Request;
 
 /**
  * 请求接口
@@ -48,4 +48,12 @@ interface RequestContract
      * @return void
      */
     public function before(object $context): void;
+
+    /**
+     * 是否开启自动根据环境抽取头信息
+     *
+     * @return bool 开关
+     */
+    public function autoAuth(): bool;
+
 }

@@ -1,13 +1,13 @@
 <?php
 
-namespace Launcher\Handler;
+namespace Xincheng\Launcher\Handler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use InvalidArgumentException;
-use Launcher\Exception\ServiceNotFoundException;
-use Launcher\request\RequestContract;
-use Launcher\Service\ServiceConstant;
+use Xincheng\Launcher\Exception\ServiceNotFoundException;
+use Xincheng\Launcher\request\RequestContract;
+use Xincheng\Launcher\Service\ServiceConstant;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -28,7 +28,7 @@ class NacosServiceHandler implements ServiceHandler
      * 执行Nacos服务调用
      *
      * @return object 执行结果
-     * @throws GuzzleException
+     * @throws GuzzleException 请求异常
      */
     public function handle(RequestContract $request, array $properties)
     {
@@ -115,13 +115,21 @@ class NacosServiceHandler implements ServiceHandler
      * @param RequestContract $request 请求参数
      * @param object $node 服务节点
      * @return ResponseInterface 相应信息
-     * @throws GuzzleException
+     * @throws GuzzleException 请求异常
      */
     protected function execute(RequestContract $request, object $node): ResponseInterface
     {
+        $options = [];
         $url = $node->ip . ':' . $node->port . $request->router();
         $client = new Client();
 
-        return $client->request($request->method(), $url, $request->options());
+        //开放自定义
+        $request->before($client);
+
+        if ($request->autoAuth() && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            $options['headers']['Authorization'] = $_SERVER['HTTP_AUTHORIZATION'];
+        }
+
+        return $client->request($request->method(), $url, array_merge($request->options(), $options));
     }
 }

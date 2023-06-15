@@ -1,10 +1,10 @@
 <?php
 
-namespace Launcher;
+namespace Xincheng\Launcher;
 
 use InvalidArgumentException;
-use Launcher\Request\RequestContract;
-use Launcher\Service\ServiceManager;
+use Xincheng\Launcher\Request\RequestContract;
+use Xincheng\Launcher\Service\ServiceManager;
 
 /**
  * 发射器

@@ -1,12 +1,12 @@
 <?php
 
-namespace Launcher\Handler;
+namespace Xincheng\Launcher\Handler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Launcher\Exception\ServiceNotFoundException;
-use Launcher\request\RequestContract;
-use Launcher\Service\ServiceConstant;
+use Xincheng\Launcher\Exception\ServiceNotFoundException;
+use Xincheng\Launcher\request\RequestContract;
+use Xincheng\Launcher\Service\ServiceConstant;
 
 /**
  * 静态服务处理器
@@ -27,11 +27,19 @@ class HttpServiceHandler implements ServiceHandler
     public function handle(RequestContract $request, array $properties)
     {
         $client = new Client();
+        $options = [];
         $service = $this->getService($request->server(), $properties);
         $target = $this->getTarget($service['target']);
         $url = $target . $request->router();
 
-        return $client->request($request->method(), $url, $request->options());
+        //开放自定义
+        $request->before($client);
+
+        if ($request->autoAuth() && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            $options['headers']['Authorization'] = $_SERVER['HTTP_AUTHORIZATION'];
+        }
+
+        return $client->request($request->method(), $url, array_merge($request->options(), $options));
     }
 
     public function type(): string

@@ -1,6 +1,6 @@
 <?php
 
-namespace Launcher\Service;
+namespace Xincheng\Launcher\Service;
 
 /**
  * 服务常量

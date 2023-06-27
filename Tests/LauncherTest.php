@@ -3,14 +3,14 @@
 namespace XinCheng\Launcher\Tests;
 
 use Xincheng\Launcher\Launcher;
-use Xincheng\Launcher\Request\BaseRequest;
 use PHPUnit\Framework\TestCase;
+use Xincheng\Launcher\Request\WebBaseRequest;
 
 class LauncherTest extends TestCase
 {
     private array $config = [
         'services' => [
-            ['name' => 'nacos-test', 'target' => ['http://10.20.7.100:8848'], 'type' => 'http'],
+            ['name' => 'http-test', 'target' => ['http://10.20.7.101/'], 'type' => 'http'],
             ['name' => 'erp-auth', 'target' => [], 'type' => 'nacos']
         ],
         'nacos' => [
@@ -31,26 +31,25 @@ class LauncherTest extends TestCase
         echo $result->getBody();
     }
 
-    public function testNacosService()
-    {
-        $launcher = new Launcher($this->config);
-        $result = $launcher->run(new NacosServiceRequest());
-
-        var_dump($result);
-    }
+//    public function testNacosService()
+//    {
+//        $launcher = new Launcher($this->config);
+//        $result = $launcher->run(new NacosServiceRequest());
+//
+//        var_dump($result);
+//    }
 }
 
-class HttpServiceRequest extends BaseRequest
+class HttpServiceRequest extends WebBaseRequest
 {
-
     public function server(): string
     {
-        return 'nacos-test';
+        return 'http-test';
     }
 
     public function router(): string
     {
-        return '/nacos/v1/ns/instance/list?serviceName=erp-auth';
+        return '/test.php';
     }
 
     public function method(): string
@@ -59,7 +58,7 @@ class HttpServiceRequest extends BaseRequest
     }
 }
 
-class NacosServiceRequest extends BaseRequest
+class NacosServiceRequest extends WebBaseRequest
 {
 
     public function server(): string

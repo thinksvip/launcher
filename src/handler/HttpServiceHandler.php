@@ -12,17 +12,18 @@ use Xincheng\Launcher\Service\ServiceConstant;
  * 静态服务处理器
  *
  * @author morgan
- * @since 2023-06-13 14:19
+ * @since  2023-06-13 14:19
  */
-class HttpServiceHandler implements ServiceHandler
+class HttpServiceHandler extends BaseServiceHandler
 {
+    use HandlerHelper;
 
     /**
      * 处理http服务请求
      *
-     * @param RequestContract $request 请求信息
-     * @param array $properties 配置信息
-     * @throws GuzzleException
+     * @param RequestContract $request    请求信息
+     * @param array           $properties 配置信息
+     * @throws GuzzleException http请求异常
      */
     public function handle(RequestContract $request, array $properties)
     {
@@ -35,9 +36,8 @@ class HttpServiceHandler implements ServiceHandler
         //开放自定义
         $request->before($client);
 
-        if ($request->autoAuth() && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            $options['headers']['Authorization'] = $_SERVER['HTTP_AUTHORIZATION'];
-        }
+        //头信息设置
+        $this->headers($request, $options);
 
         return $client->request($request->method(), $url, array_merge($request->options(), $options));
     }
@@ -50,8 +50,8 @@ class HttpServiceHandler implements ServiceHandler
     /**
      * 获取服务名称
      *
-     * @param string $name 服务名称
-     * @param array $properties 配置信息
+     * @param string $name       服务名称
+     * @param array  $properties 配置信息
      * @return array 服务信息
      */
     protected function getService(string $name, array $properties): array
@@ -79,4 +79,5 @@ class HttpServiceHandler implements ServiceHandler
 
         return array_pop($targets);
     }
+
 }

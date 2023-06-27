@@ -5,6 +5,6 @@ namespace {
     \error_reporting(\E_ALL);
 }
 
-namespace Launcher\Tests {
+namespace Launcher\tests {
     require __DIR__ . '/../vendor/autoload.php';
 }

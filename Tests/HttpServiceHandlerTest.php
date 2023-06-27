@@ -1,17 +1,18 @@
 <?php
 
-namespace Launcher\Tests;
+namespace Xincheng\Launcher\Tests;
 
 use GuzzleHttp\Exception\GuzzleException;
-use Launcher\Handler\HttpServiceHandler;
-use Launcher\request\RequestContract;
+
 use PHPUnit\Framework\TestCase;
+use Xincheng\Launcher\Handler\HttpServiceHandler;
+use Xincheng\Launcher\Request\WebBaseRequest;
 
 /**
  * Http服务处理器测试
  *
  * @author mogran
- * @since 2023-06-14 11:26
+ * @since  2023-06-14 11:26
  */
 class HttpServiceHandlerTest extends TestCase
 {
@@ -28,9 +29,8 @@ class HttpServiceHandlerTest extends TestCase
     }
 }
 
-class BRequest implements RequestContract
+class BRequest extends WebBaseRequest
 {
-
     public function server(): string
     {
         return 'http://10.20.7.100:8848';
@@ -44,15 +44,5 @@ class BRequest implements RequestContract
     public function method(): string
     {
         return 'GET';
-    }
-
-    public function options(): array
-    {
-        return [];
-    }
-
-    public function before(object $context): void
-    {
-
     }
 }

@@ -1,11 +1,12 @@
 <?php
 
-namespace Launcher\Tests;
+namespace XinCheng\Launcher\Tests;
 
 use GuzzleHttp\Exception\GuzzleException;
-use Launcher\Handler\NacosServiceHandler;
-use Launcher\request\RequestContract;
 use PHPUnit\Framework\TestCase;
+use Xincheng\Launcher\Handler\NacosServiceHandler;
+use Xincheng\Launcher\Request\RequestContract;
+use Xincheng\Launcher\Request\WebBaseRequest;
 
 /**
  * Nacos服务处理器测试
@@ -36,7 +37,7 @@ class NacosServiceHandlerTest extends TestCase
 
 }
 
-class ARequest implements RequestContract
+class ARequest extends WebBaseRequest
 {
 
     public function server(): string
@@ -52,15 +53,5 @@ class ARequest implements RequestContract
     public function method(): string
     {
         return 'GET';
-    }
-
-    public function options(): array
-    {
-        return [];
-    }
-
-    public function before(object $context): void
-    {
-
     }
 }

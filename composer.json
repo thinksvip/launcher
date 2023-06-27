@@ -8,7 +8,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Xincheng\\Launcher\\Tests\\": "tests/"
+      "Xincheng\\Launcher\\Tests\\": "Tests/"
     }
   },
   "authors": [

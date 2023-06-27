@@ -10,7 +10,6 @@ namespace Xincheng\Launcher\Request;
  */
 abstract class BaseRequest implements RequestContract
 {
-
     public function before(object $context): void
     {
 
@@ -19,10 +18,5 @@ abstract class BaseRequest implements RequestContract
     public function options(): array
     {
         return [];
-    }
-
-    public function autoAuth(): bool
-    {
-        return true;
     }
 }

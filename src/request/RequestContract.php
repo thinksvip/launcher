@@ -8,7 +8,7 @@ namespace Xincheng\Launcher\Request;
  * 约束请求规范
  *
  * @author morgan
- * @since 2023-06-13 9:44
+ * @since  2023-06-13 9:44
  */
 interface RequestContract
 {
@@ -50,10 +50,9 @@ interface RequestContract
     public function before(object $context): void;
 
     /**
-     * 是否开启自动根据环境抽取头信息
+     * 运行平台
      *
-     * @return bool 开关
+     * @return string
      */
-    public function autoAuth(): bool;
-
+    public function platform(): string;
 }

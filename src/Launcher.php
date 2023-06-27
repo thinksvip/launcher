@@ -12,7 +12,7 @@ use Xincheng\Launcher\Service\ServiceManager;
  * 解决多语言微服务环境服务调用问题
  *
  * @author morgan
- * @since 2023-06-13 9:41
+ * @since  2023-06-13 9:41
  */
 class Launcher
 {
@@ -21,6 +21,11 @@ class Launcher
      * @var ServiceManager 服务管理
      */
     private ServiceManager $serviceManager;
+
+    /**
+     * @var CacheInterface|null 缓存
+     */
+    private ?CacheInterface $cache = null;
 
     /**
      * @var array 服务配置信息
@@ -86,7 +91,19 @@ class Launcher
 
         $handle = $this->serviceManager->match($server);
 
-        //处理服务
+        $handle->setCache($this->cache);
+
         return $handle->handle($request, $this->properties);
     }
+
+    /**
+     * 设置缓存
+     *
+     * @param CacheInterface $cache
+     */
+    public function setCache(CacheInterface $cache): void
+    {
+        $this->cache = $cache;
+    }
+
 }

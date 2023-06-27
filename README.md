@@ -27,14 +27,14 @@ return [
             # http 服务示例
             [
                 # 服务名称
-                'name' => 'xc_goods', 
+                'name' => 'xxx', 
                 # 目标服务器，可配置多个地址，目前根据随机策略方式进行访问
-                'target' => ['http://10.20.7.101'],
+                'target' => ['http://xxx.xxx.xxx.xxx'],
                 # 类型 目前仅支持 http nacos两种类型
                 'type' => 'http'
             ],
             [
-                'name' => 'erp-auth',
+                'name' => 'xxx',
                 # nacos 由于自动根据配置路由所以无需填写target，默认空数组即可
                 'target' => [],
                 'type' => 'nacos'
@@ -43,15 +43,15 @@ return [
         # nacos配置信息
         'nacos' => [
             # nacos host设置
-            'host' => '10.20.9.43:8848',
+            'host' => 'xxx.xxx.xxx.xxx:8848',
             # nacos 用户名
             'username' => 'nacos',
             # nacos 密码
-            'password' => 'q6XHj6yyu8f0ImlhXsOt',
+            'password' => 'xxxx',
             # nacos group
             'groupName' => 'DEFAULT_GROUP',
             #nacos namespace
-            'namespaceId' => 'f0ca598f-4658-4e76-b191-5d1a0fc19b15',
+            'namespaceId' => 'xxxx',
         ]
     ],
 ];

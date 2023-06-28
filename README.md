@@ -1,6 +1,7 @@
 ### Launcher - 基于http协议的服务调用
 
-目前支持 基于http协议的服务调用和基于nacos注册的服务调用，由于目前项目非常驻内存运行方式，所以无法将现有项目注册到nacos，仅实现通过名称自动路由nacos注册服务。可实现 php、java之前的互相调用以实现架构的灵活扩展
+目前支持 基于http协议的服务调用和基于nacos注册的服务调用，由于目前项目非常驻内存运行方式，所以无法将现有项目注册到nacos，仅实现通过名称自动路由nacos注册服务。可实现
+php、java之前的互相调用以实现架构的灵活扩展
 
 ### 安装
 
@@ -160,6 +161,33 @@ class DirectRequest extends WebBaseRequest
 }
 ```
 
+**console发起请求**
+
+继承 ```ConsoleBaseRequest``` 即可，其他和Web一致
+
+### 控制器基类鉴权控制
+
+如 **BaseController**
+
+因为后面的所有外部请求经统一网关，所以内部系统之前不必进行鉴权，http头信息中也携带了用户信息
+
+```php
+public function init(){
+    //... code
+    //仅在 x-platform 不存在或 x-platform 等于 web 时进行授权认证
+    if (!isset($_SERVER['HTTP_X_PLATFORM']) || $_SERVER['HTTP_X_PLATFORM'] === Constants::PLATFORM_WEB) {
+        // 此处的鉴权其实是非必须的，统一网关解析token后会在请求中添加 x-tenant-id、x-user-id、x-request-id、x-platform
+        // 可直接通过请求头获取即可
+        $login = XcAuth::login();
+        $login->isLogin();
+        define('UID', 2);
+        define("UID_NAME", 'dev');
+        defined('TENANT_ID') or define('TENANT_ID', $login->getTenantId());
+        defined('USER_ID') or define('USER_ID', $login->getUserId());
+    }
+}
+```
+
 ### 调用
 
 ```php
@@ -167,4 +195,3 @@ $body = Yii::$app->launcher->run(NacosRequest::class);
 
 echo $body->getBody();
 ```
-

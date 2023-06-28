@@ -9,6 +9,7 @@ use Xincheng\Launcher\Exception\ServiceNotFoundException;
 use Xincheng\Launcher\request\RequestContract;
 use Xincheng\Launcher\Service\ServiceConstant;
 use Psr\Http\Message\ResponseInterface;
+use Xincheng\Launcher\utils\ArrUtils;
 
 /**
  * Nacos服务处理器
@@ -142,7 +143,7 @@ class NacosServiceHandler extends BaseServiceHandler
         //头信息设置
         $this->headers($request, $options);
 
-        return $client->request($request->method(), $url, array_merge($request->options(), $options));
+        return $client->request($request->method(), $url, ArrUtils::merge($request->options(), $options));
     }
 
     /**

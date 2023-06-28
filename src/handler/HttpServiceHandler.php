@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Xincheng\Launcher\Exception\ServiceNotFoundException;
 use Xincheng\Launcher\request\RequestContract;
 use Xincheng\Launcher\Service\ServiceConstant;
+use Xincheng\Launcher\utils\ArrUtils;
 
 /**
  * 静态服务处理器
@@ -39,7 +40,7 @@ class HttpServiceHandler extends BaseServiceHandler
         //头信息设置
         $this->headers($request, $options);
 
-        return $client->request($request->method(), $url, array_merge($request->options(), $options));
+        return $client->request($request->method(), $url, ArrUtils::merge($request->options(), $options));
     }
 
     public function type(): string

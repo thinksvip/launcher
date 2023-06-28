@@ -158,10 +158,8 @@ class NacosServiceHandler extends BaseServiceHandler
 
         if ($this->cache !== null) {
             if ($this->cache->hasKey($tokenKey)) {
-                echo "走缓存了";
                 return $this->cache->get($tokenKey);
             } else {
-                echo "没走";
                 $body = $this->authorizeRequest($config);
 
                 $this->cache->set($tokenKey, $body, $body->tokenTtl);
@@ -169,7 +167,6 @@ class NacosServiceHandler extends BaseServiceHandler
                 return $body;
             }
         } else {
-            echo "没有缓存中间件";
             return $this->authorizeRequest($config);
         }
     }

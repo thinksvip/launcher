@@ -137,6 +137,10 @@ class NacosServiceHandler extends BaseServiceHandler
         $url = $node->ip . ':' . $node->port . $request->router();
         $client = new Client();
 
+        if (!empty($request->params())) {
+            $url .= "?" . $request->buildQuery();
+        }
+
         //开放自定义
         $request->before($client);
 

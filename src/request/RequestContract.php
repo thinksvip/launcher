@@ -55,4 +55,18 @@ interface RequestContract
      * @return string
      */
     public function platform(): string;
+
+    /**
+     * 请求参数
+     *
+     * @return array
+     */
+    public function params(): array;
+
+    /**
+     * 构建请求参数
+     *
+     * @return string 请求参数
+     */
+    public function buildQuery(): string;
 }

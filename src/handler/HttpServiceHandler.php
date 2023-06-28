@@ -34,6 +34,10 @@ class HttpServiceHandler extends BaseServiceHandler
         $target = $this->getTarget($service['target']);
         $url = $target . $request->router();
 
+        if (!empty($request->params())) {
+            $url .= "?" . $request->buildQuery();
+        }
+
         //开放自定义
         $request->before($client);
 

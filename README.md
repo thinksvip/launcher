@@ -106,11 +106,82 @@ class LauncherDelegate extends Component
      *
      * @throws InvalidConfigException
      */
-    public function run($request)
+    public function run($request, array $params = [], array $options = [])
     {
         $request = Yii::createObject($request);
 
+        $request->params = $params;
+        $request->options = $options;
+
         return $this->launcher->run($request);
+    }
+}
+```
+
+### 缓存配置
+
+通过实现CacheInterface接口实现Launcher缓存
+
+```php
+<?php
+
+namespace common\launcher;
+
+use Xincheng\Launcher\CacheInterface;
+use Yii;
+
+/**
+ * LauncherCache
+ *
+ * @author: morgan
+ * @slice : 2023-06-27 10:44:14
+ */
+class LauncherCache implements CacheInterface
+{
+    /**
+     * 是否存在key
+     *
+     * @param string $key
+     * @return bool
+     */
+    public function hasKey(string $key): bool
+    {
+        return Yii::$app->cache->get($key) !== false;
+    }
+
+    /**
+     * 设置缓存
+     *
+     * @param string $key      key
+     * @param mixed  $value    值
+     * @param int    $duration 有效期(秒)
+     * @return void
+     */
+    public function set(string $key, $value, int $duration)
+    {
+        Yii::$app->cache->set($key, $value, $duration);
+    }
+
+    /**
+     * 获取缓存
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public function get(string $key)
+    {
+        return Yii::$app->cache->get($key);
+    }
+
+    /**
+     * 删除缓存
+     *
+     * @param string $key key
+     * @return void
+     */
+    public function del(string $key)
+    {
+        Yii::$app->cache->delete($key);
     }
 }
 ```

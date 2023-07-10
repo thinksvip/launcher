@@ -42,12 +42,12 @@ trait HandlerHelper
         }
 
         //租户id
-        if (!empty($_SERVER['HTTP_X_TENANT_ID'])) {
+        if (!empty($_SERVER['HTTP_X_TENANT_ID']) && empty($options['headers']['x-tenant-id'])) {
             $options['headers']['x-tenant-id'] = $_SERVER['HTTP_X_TENANT_ID'];
         }
 
         //user id
-        if (!empty($_SERVER['HTTP_X_USER_ID'])) {
+        if (!empty($_SERVER['HTTP_X_USER_ID']) && empty($options['headers']['x-user-id'])) {
             $options['headers']['x-user-id'] = $_SERVER['HTTP_X_USER_ID'];
         }
     }

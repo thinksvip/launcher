@@ -29,7 +29,7 @@ class HttpServiceHandler extends BaseServiceHandler
     public function handle(RequestContract $request, array $properties)
     {
         $client = new Client();
-        $options = [];
+        $options = $request->options();
         $service = $this->getService($request->server(), $properties);
         $target = $this->getTarget($service['target']);
         $url = $target . $request->router();
@@ -44,7 +44,7 @@ class HttpServiceHandler extends BaseServiceHandler
         //头信息设置
         $this->headers($request, $options);
 
-        return $client->request($request->method(), $url, ArrUtils::merge($request->options(), $options));
+        return $client->request($request->method(), $url, $options);
     }
 
     public function type(): string

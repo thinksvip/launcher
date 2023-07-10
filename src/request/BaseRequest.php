@@ -23,6 +23,39 @@ abstract class BaseRequest implements RequestContract
     }
 
     /**
+     * 设置租户id
+     *
+     * @param int $tenantId 租户id
+     * @return void
+     */
+    public function setTenantId(int $tenantId)
+    {
+        $this->options['headers']['x-tenant-id'] = $tenantId;
+    }
+
+    /**
+     * 设置用户id
+     *
+     * @param int $userId 用户id
+     * @return void
+     */
+    public function setUserId(int $userId)
+    {
+        $this->options['headers']['x-user-id'] = $userId;
+    }
+
+    /**
+     * 设置body 参数
+     *
+     * @param mixed $body 消息体
+     * @return void
+     */
+    public function setBody($body)
+    {
+        $this->options['form_params'] = $body;
+    }
+
+    /**
      * 获取
      *
      * @return string

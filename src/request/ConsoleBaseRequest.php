@@ -12,8 +12,6 @@ use Xincheng\Launcher\Constants;
  */
 abstract class ConsoleBaseRequest extends BaseRequest
 {
-    public function platform(): string
-    {
-        return Constants::PLATFORM_CONSOLE;
-    }
+    public string $platform = Constants::PLATFORM_CONSOLE;
+
 }

@@ -12,8 +12,5 @@ use Xincheng\Launcher\Constants;
  */
 abstract class WebBaseRequest extends BaseRequest
 {
-    public function platform(): string
-    {
-        return Constants::PLATFORM_WEB;
-    }
+    public string $platform = Constants::PLATFORM_WEB;
 }

@@ -2,6 +2,8 @@
 
 namespace Xincheng\Launcher\Request;
 
+use Xincheng\Launcher\Constants;
+
 /**
  * 基础请求类
  *
@@ -16,6 +18,8 @@ abstract class BaseRequest implements RequestContract
     public array $params = [];
 
     public array $options = [];
+
+    public string $platform = Constants::PLATFORM_WEB;
 
     public function before(object $context): void
     {
@@ -56,6 +60,17 @@ abstract class BaseRequest implements RequestContract
     }
 
     /**
+     * 设置平台信息
+     *
+     * @param string $platform 平台
+     * @return void
+     */
+    public function setPlatform(string $platform)
+    {
+        $this->platform = $platform;
+    }
+
+    /**
      * 获取
      *
      * @return string
@@ -65,13 +80,33 @@ abstract class BaseRequest implements RequestContract
         return http_build_query($this->params());
     }
 
+    /**
+     * url 参数
+     *
+     * @return array
+     */
     public function params(): array
     {
         return $this->params;
     }
 
+    /**
+     * 请求配置
+     *
+     * @return array
+     */
     public function options(): array
     {
         return $this->options;
+    }
+
+    /**
+     * 平台信息
+     *
+     * @return string
+     */
+    public function platform(): string
+    {
+        return $this->platform;
     }
 }

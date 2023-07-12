@@ -6,10 +6,10 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use InvalidArgumentException;
 use Xincheng\Launcher\Exception\ServiceNotFoundException;
-use Xincheng\Launcher\request\RequestContract;
+use Xincheng\Launcher\Request\RequestContract;
 use Xincheng\Launcher\Service\ServiceConstant;
 use Psr\Http\Message\ResponseInterface;
-use Xincheng\Launcher\utils\ArrUtils;
+use Xincheng\Launcher\Utils\ArrUtils;
 
 /**
  * Nacos服务处理器

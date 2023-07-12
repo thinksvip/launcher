@@ -3,7 +3,7 @@
 namespace Xincheng\Launcher\Handler;
 
 use Xincheng\Launcher\Request\RequestContract;
-use Xincheng\Launcher\utils\GenerateUtils;
+use Xincheng\Launcher\Utils\GenerateUtils;
 
 /**
  * HandlerHelper

@@ -5,9 +5,8 @@ namespace Xincheng\Launcher\Handler;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Xincheng\Launcher\Exception\ServiceNotFoundException;
-use Xincheng\Launcher\request\RequestContract;
+use Xincheng\Launcher\Request\RequestContract;
 use Xincheng\Launcher\Service\ServiceConstant;
-use Xincheng\Launcher\utils\ArrUtils;
 
 /**
  * 静态服务处理器

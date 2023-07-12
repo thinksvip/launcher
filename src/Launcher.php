@@ -42,7 +42,7 @@ class Launcher
     /**
      * 服务调用
      *
-     * @param RequestContract $request 服务调用
+     * @param RequestContract|object $request 服务调用
      * @return mixed
      */
     public function run(RequestContract $request)

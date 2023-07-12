@@ -1,6 +1,6 @@
 <?php
 
-namespace Xincheng\Launcher\utils;
+namespace Xincheng\Launcher\Utils;
 
 /**
  * ArrUtils

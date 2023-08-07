@@ -2,6 +2,7 @@
 
 namespace Xincheng\Launcher\Handler;
 
+use Xincheng\Launcher\Constants;
 use Xincheng\Launcher\Request\RequestContract;
 use Xincheng\Launcher\Utils\GenerateUtils;
 
@@ -23,32 +24,32 @@ trait HandlerHelper
     protected function headers(RequestContract $request, array &$options)
     {
         //authorization
-        if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            $options['headers']['Authorization'] = $_SERVER['HTTP_AUTHORIZATION'];
+        if (!empty($_SERVER[Constants::SERVER_HTTP_AUTHORIZATION])) {
+            $options['headers'][Constants::HTTP_HEADER_AUTHORIZATION] = $_SERVER[Constants::SERVER_HTTP_AUTHORIZATION];
         }
 
         //request id
-        if (empty($_SERVER['HTTP_X_REQUEST_ID'])) {
-            $options['headers']['x-request-id'] = GenerateUtils::uuid();
+        if (empty($_SERVER[Constants::SERVER_X_REQUEST_ID])) {
+            $options['headers'][Constants::HTTP_X_REQUEST_ID] = GenerateUtils::uuid();
         } else {
-            $options['headers']['x-request-id'] = $_SERVER['HTTP_X_REQUEST_ID'];
+            $options['headers'][Constants::HTTP_X_REQUEST_ID] = $_SERVER[Constants::SERVER_X_REQUEST_ID];
         }
 
         //运行环境
-        if (empty($_SERVER['HTTP_X_PLATFORM'])) {
-            $options['headers']['x-platform'] = $request->platform();
+        if (empty($_SERVER[Constants::SERVER_X_PLATFORM])) {
+            $options['headers'][Constants::HTTP_X_PLATFORM] = $request->platform();
         } else {
-            $options['headers']['x-platform'] = $_SERVER['HTTP_X_PLATFORM'];
+            $options['headers'][Constants::HTTP_X_PLATFORM] = $_SERVER[Constants::SERVER_X_PLATFORM];
         }
 
         //租户id
-        if (!empty($_SERVER['HTTP_X_TENANT_ID']) && empty($options['headers']['x-tenant-id'])) {
-            $options['headers']['x-tenant-id'] = $_SERVER['HTTP_X_TENANT_ID'];
+        if (!empty($_SERVER[Constants::SERVER_X_TENANT_ID]) && empty($options['headers'][Constants::HTTP_X_TENANT_ID])) {
+            $options['headers'][Constants::HTTP_X_TENANT_ID] = $_SERVER[Constants::SERVER_X_TENANT_ID];
         }
 
         //user id
-        if (!empty($_SERVER['HTTP_X_USER_ID']) && empty($options['headers']['x-user-id'])) {
-            $options['headers']['x-user-id'] = $_SERVER['HTTP_X_USER_ID'];
+        if (!empty($_SERVER[Constants::SERVER_X_USER_ID]) && empty($options['headers'][Constants::HTTP_X_USER_ID])) {
+            $options['headers'][Constants::HTTP_X_USER_ID] = $_SERVER[Constants::SERVER_X_USER_ID];
         }
     }
 }

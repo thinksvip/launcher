@@ -3,7 +3,7 @@
 namespace Xincheng\Launcher\Handler;
 
 use Xincheng\Launcher\CacheInterface;
-use Xincheng\Launcher\request\RequestContract;
+use Xincheng\Launcher\Request\RequestContract;
 
 /**
  * 服务处理器

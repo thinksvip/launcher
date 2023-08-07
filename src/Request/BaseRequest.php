@@ -34,7 +34,7 @@ abstract class BaseRequest implements RequestContract
      */
     public function setTenantId(int $tenantId)
     {
-        $this->options['headers']['x-tenant-id'] = $tenantId;
+        $this->options['headers'][Constants::HTTP_X_TENANT_ID] = $tenantId;
     }
 
     /**
@@ -45,7 +45,7 @@ abstract class BaseRequest implements RequestContract
      */
     public function setUserId(int $userId)
     {
-        $this->options['headers']['x-user-id'] = $userId;
+        $this->options['headers'][Constants::HTTP_X_USER_ID] = $userId;
     }
 
     /**
@@ -68,6 +68,17 @@ abstract class BaseRequest implements RequestContract
     public function setPlatform(string $platform)
     {
         $this->platform = $platform;
+    }
+
+    /**
+     * 设置params参数
+     *
+     * @param array $params 平台
+     * @return void
+     */
+    public function setParams(array $params)
+    {
+        $this->params = $params;
     }
 
     /**

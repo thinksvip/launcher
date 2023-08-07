@@ -66,7 +66,6 @@ class NacosServiceHandler extends BaseServiceHandler
      * @param array  $properties 配置信息
      * @param object $auth       授权
      * @return array 节点信息
-     * @throws GuzzleException http请求异常
      */
     protected function serviceInstants(string $name, array $properties, object $auth): array
     {

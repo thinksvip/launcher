@@ -41,8 +41,11 @@ class NacosServiceHandler extends BaseServiceHandler
     {
         $auth = $this->authorize($properties);
 
+        $service = $this->getService($request->server(), $properties);
+        $target = $service['target'][0] ?? "";
+
         //获取服务实例列表
-        $services = $this->serviceInstants($request->server(), $properties, $auth);
+        $services = $this->serviceInstants($target, $properties, $auth);
 
         if (empty($services)) {
             throw new ServiceNotFoundException("当前无服务可用,请检查服务名称或服务资源");

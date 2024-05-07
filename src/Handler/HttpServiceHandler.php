@@ -4,7 +4,6 @@ namespace Xincheng\Launcher\Handler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Xincheng\Launcher\Exception\ServiceNotFoundException;
 use Xincheng\Launcher\Request\RequestContract;
 use Xincheng\Launcher\Service\ServiceConstant;
 
@@ -49,26 +48,6 @@ class HttpServiceHandler extends BaseServiceHandler
     public function type(): string
     {
         return ServiceConstant::$HTTP_SERVICE;
-    }
-
-    /**
-     * 获取服务名称
-     *
-     * @param string $name       服务名称
-     * @param array  $properties 配置信息
-     * @return array 服务信息
-     */
-    protected function getService(string $name, array $properties): array
-    {
-        $services = $properties['services'];
-
-        foreach ($services as $item) {
-            if ($item['name'] == $name) {
-                return $item;
-            }
-        }
-
-        throw new ServiceNotFoundException("服务未找到,请检查配置文件");
     }
 
     /**

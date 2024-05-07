@@ -2,6 +2,7 @@
 
 namespace Xincheng\Launcher\Request;
 
+use GuzzleHttp\RequestOptions;
 use Xincheng\Launcher\Constants;
 
 /**
@@ -56,7 +57,7 @@ abstract class BaseRequest implements RequestContract
      */
     public function setBody($body)
     {
-        $this->options['form_params'] = $body;
+        $this->options[RequestOptions::JSON] = $body;
     }
 
     /**

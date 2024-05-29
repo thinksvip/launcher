@@ -232,6 +232,7 @@ class DirectRequest extends WebBaseRequest
 }
 ```
 
+
 **console发起请求**
 
 继承 ```ConsoleBaseRequest``` 即可，其他和Web一致

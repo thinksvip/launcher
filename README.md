@@ -260,7 +260,7 @@ public function init(){
 }
 ```
 
-### 调用
+### 调用 
 
 ```php
 $body = Yii::$app->launcher->run(NacosRequest::class);

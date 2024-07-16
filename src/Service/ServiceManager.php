@@ -5,6 +5,7 @@ namespace Xincheng\Launcher\Service;
 use InvalidArgumentException;
 use Xincheng\Launcher\Exception\ServiceNotFoundException;
 use Xincheng\Launcher\Handler\HttpServiceHandler;
+use Xincheng\Launcher\Handler\MesNacosServiceHandler;
 use Xincheng\Launcher\Handler\NacosServiceHandler;
 use Xincheng\Launcher\Handler\ServiceHandler;
 
@@ -12,7 +13,7 @@ use Xincheng\Launcher\Handler\ServiceHandler;
  * 服务管理器
  *
  * @author mragon
- * @since 2023-06-13 9:56
+ * @since  2023-06-13 9:56
  */
 class ServiceManager
 {
@@ -62,8 +63,9 @@ class ServiceManager
     public function loadHandles(): void
     {
         $this->handles = [
-            ServiceConstant::$NACOS_SERVICE => new NacosServiceHandler(),
-            ServiceConstant::$HTTP_SERVICE => new HttpServiceHandler(),
+            ServiceConstant::$NACOS_SERVICE     => new NacosServiceHandler(),
+            ServiceConstant::$MES_NACOS_SERVICE => new MesNacosServiceHandler(),
+            ServiceConstant::$HTTP_SERVICE      => new HttpServiceHandler(),
         ];
     }
 

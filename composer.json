@@ -20,7 +20,8 @@
   "minimum-stability": "dev",
   "require": {
     "guzzlehttp/guzzle": "^6.5 || ^7.0",
-    "ext-json": "*"
+    "ext-json": "*",
+    "alibabacloud/mse-20190531": "^6.6"
   },
   "require-dev": {
     "phpunit/phpunit": "^8.5.29 || ^9.5.23"

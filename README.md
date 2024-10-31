@@ -53,6 +53,25 @@ return [
             'groupName' => 'DEFAULT_GROUP',
             #nacos namespace
             'namespaceId' => 'xxxx',
+        ],
+        #熔断器配置 只支持redis适配器 需要安装redis拓展
+        'circuitbreaker'=>[
+            # 开启 true 关闭 false
+            'open' => true,
+            # 设置失败率阈值为50%，当请求的失败率超过这个百分比时，熔断器的状态会切换到OPEN
+            'failureRateThreshold'=> 50,
+            //设置从 OPEN 状态到 HALF_OPEN 状态的转换间隔为5秒。在 HALF_OPEN 状态下，熔断器会允许一定数量的请求尝试通过，以检测服务是否已经恢复正常。
+            'intervalToHalfOpen'=> 5,
+            #设置最小请求数为10，这是检测失败的最小请求次数。即使失败率超过了阈值，如果请求次数低于这个最小值，熔断器仍然保持 CLOSED 状态
+            'minimumRequests'=> 10,
+            //设置时间窗口为30秒，这是用来评估失败率阈值的时间间隔
+            'timeWindow'=> 60,
+            # redis 适配器host
+            'redisHost'=> '10.50.19.17',
+            # redis 适配器 端口
+            'redisPort'=> 6379,
+            # redis 适配器 密钥
+            'redisAuth'=> 'foobared'
         ]
     ],
 ];
@@ -228,6 +247,14 @@ class DirectRequest extends WebBaseRequest
     public function method(): string
     {
         return 'GET';
+    }
+
+    /**
+     * 有降级服务需完成这个方法
+     */
+    public function fallback(): \Psr\Http\Message\ResponseInterface
+    {
+    
     }
 }
 ```

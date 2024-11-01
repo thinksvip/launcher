@@ -5,6 +5,7 @@ namespace Xincheng\Launcher;
 use InvalidArgumentException;
 use Xincheng\Launcher\Request\RequestContract;
 use Xincheng\Launcher\Service\ServiceManager;
+use Xincheng\Launcher\Service\CircuitBreaker;
 
 /**
  * 发射器
@@ -27,6 +28,12 @@ class Launcher
      */
     private ?CacheInterface $cache = null;
 
+    private $adapterRedis = null;
+    /**
+     * @var CircuitBreaker|null 服务熔断器
+     */
+    private ?CircuitBreaker $circuitBreaker;
+
     /**
      * @var array 服务配置信息
      */
@@ -34,8 +41,9 @@ class Launcher
 
     ];
 
-    public function __construct(array $properties)
+    public function __construct(array $properties = [],CacheInterface $cache = null)
     {
+        $this->adapterRedis = $cache ? $cache->getRedis() : null ;
         $this->configuration($properties);
     }
 
@@ -56,9 +64,21 @@ class Launcher
      *
      * @return void
      */
-    public function loadService(array $services)
+    public function loadService(array $services, $circuitBreaker)
     {
-        $this->serviceManager = ServiceManager::load($services);
+        $this->serviceManager = ServiceManager::load($services,$circuitBreaker);
+    }
+
+    /**
+     * 加载熔断器
+     *
+     * @return void
+     */
+    public function loadCircuitBreaker(array $circuitBreakerConfig,$adapterRedis)
+    {
+        $this->circuitBreaker = (isset($circuitBreakerConfig['open']) && $circuitBreakerConfig['open'] && $adapterRedis) 
+            ? (new CircuitBreaker($circuitBreakerConfig,$adapterRedis)) 
+            : null;
     }
 
     /**
@@ -72,7 +92,8 @@ class Launcher
         $this->properties = $properties;
 
         //加载服务
-        $this->loadService($properties['services']);
+        $this->loadCircuitBreaker($properties['circuitbreaker']??[],$this->adapterRedis);
+        $this->loadService($properties['services'],$this->circuitBreaker);
     }
 
     /**

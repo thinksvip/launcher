@@ -14,14 +14,9 @@ class CircuitBreaker
 {
     private  Ganesha  $ganesha;
     /**
-     * @var string 适配器redis host 也可以使用其他适配器 这里就使用redis
+     * @var int 统计时间窗口 单位s
      */
-    public string $adapterRedisHost = '127.0.0.1';
-    public int $adapterRedisPort = 6379;
-     /**
-     * @var string redis 认证 requirepass
-     */
-    public string $adapterRedisAuth = '';
+    public int $timeWindow = 60 ;
     /**
      * @var int 时间窗口内失败率 百分之
      */
@@ -32,25 +27,15 @@ class CircuitBreaker
      * @var int 时间窗口内最小请求数量
      */
     public int $minimumRequests = 10;
-    /**
-     * @var int 统计时间窗口 单位s
-     */
-    public int $timeWindow = 60 ;
 
-    public function __construct(array $config = [])
+    public function __construct(array $config = [], $adapterRedis)
     {
         isset($config['failureRateThreshold']) && $this->failureRateThreshold = $config['failureRateThreshold'];
         isset($config['intervalToHalfOpen']) && $this->intervalToHalfOpen = $config['intervalToHalfOpen'];
         isset($config['minimumRequests']) && $this->minimumRequests = $config['minimumRequests'];
-        isset($config['minimumRequests']) && $this->failureRateThreshold = $config['minimumRequests'];
-        isset($config['redisHost']) && $this->adapterRedisHost = $config['redisHost'];
-        isset($config['redisPort']) && $this->adapterRedisPort = $config['redisPort'];
-        isset($config['redisAuth']) && $this->adapterRedisAuth = $config['redisAuth'];
-        $redis = new \Redis();
-        $redis->connect( $this->adapterRedisHost,$this->adapterRedisPort);
-        $redis->auth( $this->adapterRedisAuth);
+        isset($config['minimumRequests']) && $this->failureRateThreshold = $config['minimumRequests'];   
         //redis适配器 暂时只支持这一种
-        $adapter = new \Ackintosh\Ganesha\Storage\Adapter\Redis($redis);
+        $adapter = new \Ackintosh\Ganesha\Storage\Adapter\Redis($adapterRedis);
         //配置熔断策略
         $this->ganesha = \Ackintosh\Ganesha\Builder::withRateStrategy()
             ->adapter($adapter)

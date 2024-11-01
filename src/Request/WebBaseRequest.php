@@ -13,4 +13,14 @@ use Xincheng\Launcher\Constants;
 abstract class WebBaseRequest extends BaseRequest
 {
     public string $platform = Constants::PLATFORM_WEB;
+
+    public function isCircuitBreakerProcess():bool
+    {
+        return false;
+    }
+
+    public function fallback()
+    {
+        return null;
+    }
 }

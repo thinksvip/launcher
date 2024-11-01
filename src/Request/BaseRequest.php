@@ -121,4 +121,14 @@ abstract class BaseRequest implements RequestContract
     {
         return $this->platform;
     }
+
+    public function isCircuitBreakerProcess():bool
+    {
+        return false;
+    }
+
+    public function fallback()
+    {
+
+    }
 }

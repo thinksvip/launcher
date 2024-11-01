@@ -69,4 +69,15 @@ interface RequestContract
      * @return string 请求参数
      */
     public function buildQuery(): string;
+
+    /**
+     * 是否熔断处理
+     */
+    public function isCircuitBreakerProcess(): bool;
+    
+    /**
+     * 熔断降级处理
+     */
+    public function fallback();
+
 }

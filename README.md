@@ -64,14 +64,8 @@ return [
             'intervalToHalfOpen'=> 5,
             #设置最小请求数为10，这是检测失败的最小请求次数。即使失败率超过了阈值，如果请求次数低于这个最小值，熔断器仍然保持 CLOSED 状态
             'minimumRequests'=> 10,
-            //设置时间窗口为30秒，这是用来评估失败率阈值的时间间隔
-            'timeWindow'=> 60,
-            # redis 适配器host
-            'redisHost'=> '10.50.19.17',
-            # redis 适配器 端口
-            'redisPort'=> 6379,
-            # redis 适配器 密钥
-            'redisAuth'=> 'foobared'
+            //设置时间窗口为60秒，这是用来评估失败率阈值的时间间隔
+            'timeWindow'=> 60
         ]
     ],
 ];
@@ -116,8 +110,9 @@ class LauncherDelegate extends Component
      */
     public function init()
     {
-        $this->launcher = new Launcher($this->properties);
-        $this->launcher->setCache(new LauncherCache());
+        $launcherCache  = new LauncherCache()
+        $this->launcher = new Launcher($this->properties,$launcherCache);
+        $this->launcher->setCache($launcherCache);
     }
 
     /**
@@ -202,6 +197,18 @@ class LauncherCache implements CacheInterface
     {
         Yii::$app->cache->delete($key);
     }
+    /**
+     * 配置redis 服务熔断使用redis适配器
+     * 
+     */
+    public function getRedis()
+    {
+        $redisConfig = \Yii::$app->components['redis'];
+        $redis       = new \Redis();
+        $redis->connect($redisConfig['hostname'],$redisConfig['port']);
+        $redis->auth($redisConfig['password']);
+        return $redis;
+    }
 }
 ```
 
@@ -247,6 +254,14 @@ class DirectRequest extends WebBaseRequest
     public function method(): string
     {
         return 'GET';
+    }
+
+    /**
+     * 是否需要服务降级处理
+     */
+    public function isCircuitBreakerProcess():bool
+    {
+        return true;
     }
 
     /**

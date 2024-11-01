@@ -4,9 +4,10 @@ namespace Xincheng\Launcher\Handler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Xincheng\Launcher\Exception\ServiceRejectedException;
 use Xincheng\Launcher\Request\RequestContract;
-use Xincheng\Launcher\Service\ServiceConstant;
 use Xincheng\Launcher\Service\CircuitBreaker;
+use Xincheng\Launcher\Service\ServiceConstant;
 
 /**
  * 静态服务处理器
@@ -17,31 +18,38 @@ use Xincheng\Launcher\Service\CircuitBreaker;
 class HttpServiceHandler extends BaseServiceHandler
 {
     use HandlerHelper;
+
     public bool $circuitbreakerOpen = false;
+    public $clientHandlers = null;
+
+    public function __construct($circuitBreaker)
+    {
+        if($circuitBreaker instanceof CircuitBreaker){
+            $this->circuitbreakerOpen = true;
+            $this->clientHandlers = $circuitBreaker->getClientHandlersWithGuzzleMiddleware();
+        }
+    }
 
     /**
      * 处理http服务请求
      *
      * @param RequestContract $request    请求信息
      * @param array           $properties 配置信息
-     * @throws GuzzleException http请求异常
+     * @throws GuzzleException|ServiceRejectedException http请求异常
      */
     public function handle(RequestContract $request, array $properties)
     {
-        $this->circuitbreakerOpen = (isset($properties['circuitbreaker']['open']) && $properties['circuitbreaker']['open']);
         $options = $request->options();
         $service = $this->getService($request->server(), $properties);
         $target  = $this->getTarget($service['target']);
         $url = $target . $request->router();
-
         if (!empty($request->params())) {
             $url .= "?" . $request->buildQuery();
         }
         if($this->circuitbreakerOpen){
             try{
-                $handlers = (new CircuitBreaker($properties['circuitbreaker']))->getClientHandlersWithGuzzleMiddleware();
                 $client   = new Client([
-                    'handler' => $handlers,
+                    'handler' => $this->clientHandlers,
                     'ganesha.service_name' => $request->method(). $url
                 ]);
                 //开放自定义
@@ -50,10 +58,10 @@ class HttpServiceHandler extends BaseServiceHandler
                 $this->headers($request, $options);
                 return $client->request($request->method(), $url, $options);
             } catch (\Ackintosh\Ganesha\Exception\RejectedException $e) {
-                if (is_callable([$request,'fallback'])){
+                if($request->isCircuitBreakerProcess()){
                     return $request->fallback();
                 }else{
-                    throw  new \Exception("Service temporarily unavailable");
+                    throw  new ServiceRejectedException("Service temporarily unavailable");
                 }
             }
         }else{
@@ -62,6 +70,7 @@ class HttpServiceHandler extends BaseServiceHandler
             $this->headers($request, $options);
             return $client->request($request->method(), $url, $options);
         }
+       
     }
 
     public function type(): string

@@ -44,4 +44,6 @@ interface CacheInterface
      */
     public function del(string $key);
 
+    public function getRedis();
+
 }

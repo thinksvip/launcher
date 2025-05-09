@@ -30,6 +30,7 @@ class CircuitBreaker
 
     public function __construct(array $config = [], $adapterRedis)
     {
+        var_dump($config);
         isset($config['failureRateThreshold']) && $this->failureRateThreshold = $config['failureRateThreshold'];
         isset($config['intervalToHalfOpen']) && $this->intervalToHalfOpen = $config['intervalToHalfOpen'];
         isset($config['minimumRequests']) && $this->minimumRequests = $config['minimumRequests'];

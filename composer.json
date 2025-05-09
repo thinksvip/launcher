@@ -1,0 +1,30 @@
+{
+  "name": "xincheng/launcher",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Xincheng\\Launcher\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Xincheng\\Launcher\\Tests\\": "Tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "morgan",
+      "email": "morganmou@sz2k.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "guzzlehttp/guzzle": "^6.5 || ^7.0",
+    "ext-json": "*",
+    "alibabacloud/mse-20190531": "^6.6",
+    "ackintosh/ganesha": "^2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8.5.29 || ^9.5.23"
+  }
+}

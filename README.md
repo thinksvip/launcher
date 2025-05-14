@@ -199,6 +199,24 @@ class LauncherCache implements CacheInterface
     
     /**
      * 配置redis 服务熔断使用redis适配器
+     * 
+     * \Redis 
+     * ```php
+     * $redisConfig = \Yii::$app->components['redis'];
+     * $redis       = new \Redis();
+     * $redis->connect($redisConfig['hostname'],$redisConfig['port']);
+     * $redis->auth($redisConfig['password']);
+     * return $redis;
+     * ``` 
+     * or  \RedisCluster
+     * ``` 
+     * $redisConfig = \Yii::$app->components['redis'];
+     * $seeds = [
+     *      '10.50.17.5:6379',
+     * ];
+     * $redis = new \RedisCluster(null, $seeds, 1.5, 1.5, true,$redisConfig['password']);
+     * return $redis; 
+     * ``` 
      * @return \Redis|\RedisCluster
      */
     public function getRedis()

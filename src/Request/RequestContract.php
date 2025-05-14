@@ -80,4 +80,11 @@ interface RequestContract
      */
     public function fallback();
 
+
+    /**
+     * 熔断器配置
+     * @return array
+     */
+    public function circuitBreakerConfig(): array;
+
 }

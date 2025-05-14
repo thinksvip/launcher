@@ -122,7 +122,7 @@ abstract class BaseRequest implements RequestContract
         return $this->platform;
     }
 
-    public function isCircuitBreakerProcess():bool
+    public function isCircuitBreakerProcess(): bool
     {
         return false;
     }
@@ -130,5 +130,10 @@ abstract class BaseRequest implements RequestContract
     public function fallback()
     {
 
+    }
+
+    public function circuitBreakerConfig(): array
+    {
+        return [];
     }
 }

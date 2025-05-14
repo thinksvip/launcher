@@ -28,14 +28,13 @@ class CircuitBreaker
      */
     public int $minimumRequests = 10;
 
-    public function __construct(array $config = [], $adapterRedis)
+    public function __construct(array $config = [], $adapterRedis = null)
     {
-        var_dump($config);
         isset($config['failureRateThreshold']) && $this->failureRateThreshold = $config['failureRateThreshold'];
         isset($config['intervalToHalfOpen']) && $this->intervalToHalfOpen = $config['intervalToHalfOpen'];
         isset($config['minimumRequests']) && $this->minimumRequests = $config['minimumRequests'];
         isset($config['minimumRequests']) && $this->failureRateThreshold = $config['minimumRequests'];   
-        //redis适配器 暂时只支持这一种
+        //redis适配器ne 
         $adapter = new \Ackintosh\Ganesha\Storage\Adapter\Redis($adapterRedis);
         //配置熔断策略
         $this->ganesha = \Ackintosh\Ganesha\Builder::withRateStrategy()
@@ -56,6 +55,11 @@ class CircuitBreaker
         $handlers    =  \GuzzleHttp\HandlerStack::create();
         $handlers->push($middleware);
         return $handlers;
+    }
+
+    public function getGanesha()
+    {
+        return $this->ganesha;
     }
 
 }

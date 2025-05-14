@@ -28,7 +28,6 @@ class Launcher
      */
     private ?CacheInterface $cache = null;
 
-    private $adapterRedis = null;
     /**
      * @var CircuitBreaker|null 服务熔断器
      */
@@ -43,7 +42,7 @@ class Launcher
 
     public function __construct(array $properties = [],CacheInterface $cache = null)
     {
-        $this->adapterRedis = $cache ? $cache->getRedis() : null ;
+        $cache && $this->setCache($cache);
         $this->configuration($properties);
     }
 
@@ -74,10 +73,11 @@ class Launcher
      *
      * @return void
      */
-    public function loadCircuitBreaker(array $circuitBreakerConfig,$adapterRedis)
+    public function loadCircuitBreaker()
     {
-        $this->circuitBreaker = (isset($circuitBreakerConfig['open']) && $circuitBreakerConfig['open'] && $adapterRedis) 
-            ? (new CircuitBreaker($circuitBreakerConfig,$adapterRedis)) 
+        $adapterRedis = $this->cache ? $this->cache->getRedis() : null;
+        $this->circuitBreaker = (isset($this->properties['circuitbreaker']['open']) && $this->properties['circuitbreaker']['open'] && $adapterRedis)
+            ? (new CircuitBreaker($this->properties['circuitbreaker'],$adapterRedis))
             : null;
     }
 
@@ -92,7 +92,7 @@ class Launcher
         $this->properties = $properties;
 
         //加载服务
-        $this->loadCircuitBreaker($properties['circuitbreaker']??[],$this->adapterRedis);
+        $this->loadCircuitBreaker();
         $this->loadService($properties['services'],$this->circuitBreaker);
     }
 
@@ -126,5 +126,4 @@ class Launcher
     {
         $this->cache = $cache;
     }
-
 }

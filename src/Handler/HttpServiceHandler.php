@@ -2,8 +2,10 @@
 
 namespace Xincheng\Launcher\Handler;
 
+use Ackintosh\Ganesha\Exception\RejectedException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Xincheng\Launcher\Exception\ServiceNotFoundException;
 use Xincheng\Launcher\Exception\ServiceRejectedException;
 use Xincheng\Launcher\Request\RequestContract;
 use Xincheng\Launcher\Service\CircuitBreaker;
@@ -21,10 +23,12 @@ class HttpServiceHandler extends BaseServiceHandler
 
     public bool $circuitbreakerOpen = false;
     public $clientHandlers = null;
+    private ?CircuitBreaker $circuitBreaker = null;
 
-    public function __construct($circuitBreaker)
+    public function __construct($circuitBreaker = null)
     {
-        if($circuitBreaker instanceof CircuitBreaker){
+        if ($circuitBreaker instanceof CircuitBreaker) {
+            $this->circuitBreaker = $circuitBreaker;
             $this->circuitbreakerOpen = true;
             $this->clientHandlers = $circuitBreaker->getClientHandlersWithGuzzleMiddleware();
         }
@@ -42,35 +46,35 @@ class HttpServiceHandler extends BaseServiceHandler
         $options = $request->options();
         $service = $this->getService($request->server(), $properties);
         $target  = $this->getTarget($service['target']);
-        $url = $target . $request->router();
-        if (!empty($request->params())) {
-            $url .= "?" . $request->buildQuery();
-        }
-        if($this->circuitbreakerOpen){
-            try{
-                $client   = new Client([
-                    'handler' => $this->clientHandlers,
-                    'ganesha.service_name' => $request->method(). $url
-                ]);
-                //开放自定义
-                $request->before($client);
-                //头信息设置
-                $this->headers($request, $options);
-                return $client->request($request->method(), $url, $options);
-            } catch (\Ackintosh\Ganesha\Exception\RejectedException $e) {
-                if($request->isCircuitBreakerProcess()){
-                    return $request->fallback();
-                }else{
-                    throw  new ServiceRejectedException("Service temporarily unavailable");
-                }
+        $url = $this->requestUrl($target, $request);
+        $config = [];
+        if ($this->circuitbreakerOpen) {
+            $config = [
+                'handler' => $this->clientHandlers,
+                'ganesha.service_name' => $request->server(),
+            ];
+            if (isset($options['handler']) && $this->circuitBreaker !== null) {
+                $middleware = $this->circuitBreaker->getGuzzleMiddleware();
+                $options['handler'] = $middleware($options['handler']);
             }
-        }else{
-            $client = new Client();
-            $request->before($client);
-            $this->headers($request, $options);
-            return $client->request($request->method(), $url, $options);
         }
-       
+
+        $client = new Client($config);
+        $request->before($client);
+        $this->headers($request, $options);
+        try {
+            return $client->request($request->method(), $url, $options);
+        } catch (RejectedException $e) {
+            if (!$this->circuitbreakerOpen) {
+                throw $e;
+            }
+            $publicMethods = array_map('strtolower', get_class_methods($request));
+            if (in_array('iscircuitbreakerprocess', $publicMethods, true)
+                && in_array('fallback', $publicMethods, true) && $request->isCircuitBreakerProcess()) {
+                return $request->fallback();
+            }
+            throw new ServiceRejectedException("Service temporarily unavailable", 0, $e);
+        }
     }
 
     public function type(): string
@@ -86,6 +90,12 @@ class HttpServiceHandler extends BaseServiceHandler
      */
     protected function getTarget(array $targets): string
     {
+        $targets = array_filter($targets, static function ($target) {
+            return is_string($target) && trim($target) !== '';
+        });
+        if (!$targets) {
+            throw new ServiceNotFoundException("HTTP 服务未配置可用的目标地址");
+        }
         shuffle($targets);
 
         return array_pop($targets);

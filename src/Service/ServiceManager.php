@@ -27,7 +27,7 @@ class ServiceManager
      */
     private array $handles = [];
 
-    public function __construct($circuitBreaker)
+    public function __construct($circuitBreaker = null)
     {
         $this->loadHandles($circuitBreaker);
     }
@@ -38,7 +38,7 @@ class ServiceManager
      * @param array $services 服务
      * @return ServiceManager
      */
-    public static function load(array $services,$circuitBreaker): ServiceManager
+    public static function load(array $services, $circuitBreaker = null): ServiceManager
     {
         $manager = new ServiceManager($circuitBreaker);
 
@@ -60,7 +60,7 @@ class ServiceManager
      *
      * @return void
      */
-    public function loadHandles($circuitBreaker): void
+    public function loadHandles($circuitBreaker = null): void
     {
         $this->handles = [
             ServiceConstant::$NACOS_SERVICE     => new NacosServiceHandler(),

@@ -9,7 +9,6 @@ use Xincheng\Launcher\Exception\ServiceNotFoundException;
 use Xincheng\Launcher\Request\RequestContract;
 use Xincheng\Launcher\Service\ServiceConstant;
 use Psr\Http\Message\ResponseInterface;
-use Xincheng\Launcher\Utils\ArrUtils;
 
 /**
  * Nacos服务处理器
@@ -42,14 +41,13 @@ class NacosServiceHandler extends BaseServiceHandler
         $auth = $this->authorize($properties);
 
         $service = $this->getService($request->server(), $properties);
-        $target = $service['target'][0] ?? "";
+        $target = $service['target'][0] ?? '';
+        if ($target === '' || $target === false) {
+            $target = $request->server();
+        }
 
         //获取服务实例列表
         $services = $this->serviceInstants($target, $properties, $auth);
-
-        if (empty($services)) {
-            throw new ServiceNotFoundException("当前无服务可用,请检查服务名称或服务资源");
-        }
 
         $node = $this->selectService($services);
 
@@ -96,7 +94,8 @@ class NacosServiceHandler extends BaseServiceHandler
     protected function queryServiceParameters(string $name, array $config, object $auth): string
     {
         $query = [
-            'serviceName' => $name
+            'serviceName' => $name,
+            'healthyOnly' => 'true',
         ];
 
         if (!empty($config['groupName'])) {
@@ -120,6 +119,12 @@ class NacosServiceHandler extends BaseServiceHandler
      */
     protected function selectService(array $services): object
     {
+        $services = array_filter($services, static function ($node) {
+            return !empty($node->ip) && !empty($node->port) && ($node->healthy ?? true) && ($node->enabled ?? true);
+        });
+        if (!$services) {
+            throw new ServiceNotFoundException("当前无服务可用,请检查服务名称或服务资源");
+        }
         shuffle($services);
 
         return array_pop($services);
@@ -135,21 +140,17 @@ class NacosServiceHandler extends BaseServiceHandler
      */
     protected function execute(RequestContract $request, object $node): ResponseInterface
     {
-        $options = [];
-        $url = $node->ip . ':' . $node->port . $request->router();
+        $url = $this->requestUrl($node->ip . ':' . $node->port, $request);
         $client = new Client();
-
-        if (!empty($request->params())) {
-            $url .= "?" . $request->buildQuery();
-        }
 
         //开放自定义
         $request->before($client);
 
         //头信息设置
+        $options = $request->options();
         $this->headers($request, $options);
 
-        return $client->request($request->method(), $url, ArrUtils::merge($request->options(), $options));
+        return $client->request($request->method(), $url, $options);
     }
 
     /**
@@ -163,19 +164,18 @@ class NacosServiceHandler extends BaseServiceHandler
         $config = $properties['nacos'];
         $tokenKey = $this->tokenKey($config);
 
-        if ($this->cache !== null) {
-            if ($this->cache->hasKey($tokenKey)) {
-                return $this->cache->get($tokenKey);
-            } else {
-                $body = $this->authorizeRequest($config);
-
-                $this->cache->set($tokenKey, $body, $body->tokenTtl);
-
-                return $body;
+        if ($this->cache !== null && $this->cache->hasKey($tokenKey)) {
+            $cached = $this->cache->get($tokenKey);
+            if (isset($cached->accessToken)) {
+                return $cached;
             }
-        } else {
-            return $this->authorizeRequest($config);
         }
+
+        $body = $this->authorizeRequest($config);
+        if ($this->cache !== null) {
+            $this->cache->set($tokenKey, $body, $body->tokenTtl);
+        }
+        return $body;
     }
 
     /**

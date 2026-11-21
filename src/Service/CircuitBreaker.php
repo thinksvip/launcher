@@ -1,8 +1,18 @@
 <?php
 
 namespace Xincheng\Launcher\Service;
+
 use Ackintosh\Ganesha;
+use Ackintosh\Ganesha\Builder;
+use Ackintosh\Ganesha\Exception\RejectedException;
+use Ackintosh\Ganesha\GuzzleMiddleware\ServiceNameExtractor;
+use Ackintosh\Ganesha\Storage\Adapter\Redis;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Promise\RejectedPromise;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * 服务熔断器
@@ -12,33 +22,21 @@ use GuzzleHttp\HandlerStack;
  */
 class CircuitBreaker
 {
-    private  Ganesha  $ganesha;
-    /**
-     * @var int 统计时间窗口 单位s
-     */
-    public int $timeWindow = 60 ;
-    /**
-     * @var int 时间窗口内失败率 百分之
-     */
-    public int $failureRateThreshold = 50 ;
-
-    public int $intervalToHalfOpen = 5 ;
-    /**
-     * @var int 时间窗口内最小请求数量
-     */
+    private Ganesha $ganesha;
+    public int $timeWindow = 60;
+    public int $failureRateThreshold = 50;
+    public int $intervalToHalfOpen = 5;
     public int $minimumRequests = 10;
 
-    public function __construct(array $config = [], $adapterRedis)
+    public function __construct(array $config, $adapterRedis)
     {
-        isset($config['failureRateThreshold']) && $this->failureRateThreshold = $config['failureRateThreshold'];
-        isset($config['intervalToHalfOpen']) && $this->intervalToHalfOpen = $config['intervalToHalfOpen'];
-        isset($config['minimumRequests']) && $this->minimumRequests = $config['minimumRequests'];
-        isset($config['minimumRequests']) && $this->failureRateThreshold = $config['minimumRequests'];   
-        //redis适配器 暂时只支持这一种
-        $adapter = new \Ackintosh\Ganesha\Storage\Adapter\Redis($adapterRedis);
-        //配置熔断策略
-        $this->ganesha = \Ackintosh\Ganesha\Builder::withRateStrategy()
-            ->adapter($adapter)
+        $this->timeWindow = $config['timeWindow'] ?? $this->timeWindow;
+        $this->failureRateThreshold = $config['failureRateThreshold'] ?? $this->failureRateThreshold;
+        $this->intervalToHalfOpen = $config['intervalToHalfOpen'] ?? $this->intervalToHalfOpen;
+        $this->minimumRequests = $config['minimumRequests'] ?? $this->minimumRequests;
+
+        $this->ganesha = Builder::withRateStrategy()
+            ->adapter(new Redis($adapterRedis))
             ->failureRateThreshold($this->failureRateThreshold)
             ->intervalToHalfOpen($this->intervalToHalfOpen)
             ->minimumRequests($this->minimumRequests)
@@ -47,14 +45,55 @@ class CircuitBreaker
     }
 
     /**
-     * GuzzleClient 中间件
+     * Ganesha 2.x 自带的中间件依赖 Promises 2 已移除的函数。
+     * 通过各版本通用的 Ganesha 和 Promise 接口登记请求结果。
      */
-    public function getClientHandlersWithGuzzleMiddleware(): HandlerStack
+    public function getGuzzleMiddleware(): callable
     {
-        $middleware  = new \Ackintosh\Ganesha\GuzzleMiddleware($this->ganesha);
-        $handlers    =  \GuzzleHttp\HandlerStack::create();
-        $handlers->push($middleware);
-        return $handlers;
+        $extractor = new ServiceNameExtractor();
+        return function (callable $handler) use ($extractor) {
+            return function (RequestInterface $request, array $options) use ($handler, $extractor) {
+                $service = $extractor->extract($request, $options);
+                if (!$this->ganesha->isAvailable($service)) {
+                    $error = method_exists(RejectedException::class, 'withServiceName')
+                        ? RejectedException::withServiceName($service)
+                        : new RejectedException(sprintf('"%s" is not available', $service));
+                    return new RejectedPromise($error);
+                }
+
+                try {
+                    $promise = $handler($request, $options);
+                } catch (TransferException $e) {
+                    $promise = new RejectedPromise($e);
+                }
+
+                return $promise->then(
+                    function (ResponseInterface $response) use ($service) {
+                        if ($response->getStatusCode() >= 500) {
+                            $this->ganesha->failure($service);
+                        } else {
+                            $this->ganesha->success($service);
+                        }
+                        return $response;
+                    },
+                    function ($reason) use ($service) {
+                        // 自定义 HandlerStack 可能已将 4xx 响应转换为 ClientException。
+                        if ($reason instanceof ClientException) {
+                            $this->ganesha->success($service);
+                        } else {
+                            $this->ganesha->failure($service);
+                        }
+                        return new RejectedPromise($reason);
+                    }
+                );
+            };
+        };
     }
 
+    public function getClientHandlersWithGuzzleMiddleware(): HandlerStack
+    {
+        $handlers = HandlerStack::create();
+        $handlers->unshift($this->getGuzzleMiddleware());
+        return $handlers;
+    }
 }

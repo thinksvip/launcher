@@ -8,9 +8,9 @@ use Darabonba\OpenApi\Models\Config;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
+use Xincheng\Launcher\Exception\ServiceNotFoundException;
 use Xincheng\Launcher\Request\RequestContract;
 use Xincheng\Launcher\Service\ServiceConstant;
-use Xincheng\Launcher\Utils\ArrUtils;
 
 /**
  * MesNacosServiceHandler
@@ -56,10 +56,22 @@ class MesNacosServiceHandler extends BaseServiceHandler
             "pageSize"    => 10,
         ]);
 
-        $response = $client->listAnsInstances($listInstancesReq);
-        $body = $response->body->toMap();
+        do {
+            $response = $client->listAnsInstances($listInstancesReq);
+            $body = $response->body->toMap();
+            $nodes = array_filter($body['Data'] ?? [], static function ($node) {
+                return !empty($node['Ip']) && !empty($node['Port'])
+                    && ($node['Healthy'] ?? true) && ($node['Enabled'] ?? true);
+            });
+            if ($nodes) {
+                return $this->selectService($nodes);
+            }
+            $pageSize = ($body['PageSize'] ?? 0) > 0 ? $body['PageSize'] : $listInstancesReq->pageSize;
+            $readCount = $listInstancesReq->pageNum * $pageSize;
+            $listInstancesReq->pageNum++;
+        } while (!empty($body['Data']) && $readCount < ($body['TotalCount'] ?? 0));
 
-        return $this->selectService($body['Data']);
+        throw new ServiceNotFoundException("当前无服务可用,请检查服务名称或服务资源");
     }
 
     /**
@@ -73,21 +85,17 @@ class MesNacosServiceHandler extends BaseServiceHandler
      */
     protected function execute(RequestContract $request, string $ip, string $port): ResponseInterface
     {
-        $options = [];
-        $url = $ip . ':' . $port . $request->router();
+        $url = $this->requestUrl($ip . ':' . $port, $request);
         $client = new Client();
-
-        if (!empty($request->params())) {
-            $url .= "?" . $request->buildQuery();
-        }
 
         //开放自定义
         $request->before($client);
 
         //头信息设置
+        $options = $request->options();
         $this->headers($request, $options);
 
-        return $client->request($request->method(), $url, ArrUtils::merge($request->options(), $options));
+        return $client->request($request->method(), $url, $options);
     }
 
     /**

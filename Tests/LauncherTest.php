@@ -1,78 +1,107 @@
 <?php
 
-namespace XinCheng\Launcher\Tests;
+namespace Xincheng\Launcher\Tests;
 
-use Xincheng\Launcher\Launcher;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use Xincheng\Launcher\Request\WebBaseRequest;
+use Xincheng\Launcher\CacheInterface;
+use Xincheng\Launcher\Exception\ServiceNotFoundException;
+use Xincheng\Launcher\Launcher;
 
 class LauncherTest extends TestCase
 {
-    private array $config = [
-        'services' => [
-            ['name' => 'http-test', 'target' => ['http://10.20.7.101/'], 'type' => 'http'],
-            ['name' => 'erp-auth', 'target' => [], 'type' => 'nacos']
-        ],
-        'nacos' => [
-            'host' => '10.20.7.100:8848'
-        ]
-    ];
-
-    /**
-     * 测试http 服务器
-     *
-     * @return void
-     */
-    public function testHttpService()
+    /** @dataProvider cacheInjectionModes */
+    public function testDiscoveryUsesLegacyCache(bool $useSetter): void
     {
-        $launcher = new Launcher($this->config);
-        $result = $launcher->run(new HttpServiceRequest());
+        $cache = $this->createMock(CacheInterface::class);
+        $cache->expects(self::once())->method('hasKey')->with('nacos:token:http://registry.test')
+            ->willThrowException(new \RuntimeException('Reached discovery cache'));
+        $properties = [
+            'services' => [['name' => 'orders', 'type' => 'nacos', 'target' => []]],
+            'nacos' => ['host' => 'http://registry.test'],
+        ];
+        $launcher = new Launcher($properties, $useSetter ? null : $cache);
+        if ($useSetter) {
+            $launcher->setCache($cache);
+        }
 
-        echo $result->getBody();
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Reached discovery cache');
+        $launcher->run(new ServiceRequest('orders', '/'));
     }
 
-//    public function testNacosService()
-//    {
-//        $launcher = new Launcher($this->config);
-//        $result = $launcher->run(new NacosServiceRequest());
-//
-//        var_dump($result);
-//    }
-}
-
-class HttpServiceRequest extends WebBaseRequest
-{
-    public function server(): string
+    public static function cacheInjectionModes(): array
     {
-        return 'http-test';
+        return [[false], [true]];
     }
 
-    public function router(): string
+    public function testRedisIsOnlyRequestedWhenEnablingCircuitBreaker(): void
     {
-        return '/test.php';
+        $cache = $this->getMockBuilder(CacheInterface::class)
+            ->onlyMethods(['hasKey', 'get', 'set', 'del'])->addMethods(['getRedis'])->getMock();
+        $cache->expects(self::once())->method('getRedis');
+        $launcher = new Launcher([], $cache);
+        $launcher->configuration(['circuitbreaker' => ['open' => true]]);
+        $launcher->setCache($cache);
     }
 
-    public function method(): string
+    public function testCacheCanBeRetriedAfterRedisConnectionFails(): void
     {
-        return 'GET';
+        $cache = $this->getMockBuilder(CacheInterface::class)
+            ->onlyMethods(['hasKey', 'get', 'set', 'del'])->addMethods(['getRedis'])->getMock();
+        $attempts = 0;
+        $cache->expects(self::exactly(2))->method('getRedis')->willReturnCallback(function () use (&$attempts) {
+            if (++$attempts === 1) {
+                throw new \RuntimeException('Redis connection failed');
+            }
+            return null;
+        });
+        $launcher = new Launcher(['circuitbreaker' => ['open' => true]]);
+        try {
+            $launcher->setCache($cache);
+            self::fail('Expected Redis connection to fail');
+        } catch (\RuntimeException $e) {
+            self::assertSame('Redis connection failed', $e->getMessage());
+        }
+        $launcher->setCache($cache);
     }
-}
 
-class NacosServiceRequest extends WebBaseRequest
-{
-
-    public function server(): string
+    public function testDefaultConfigurationHasNoServices(): void
     {
-        return 'erp-auth';
+        $launcher = new Launcher();
+
+        $this->expectException(ServiceNotFoundException::class);
+        $launcher->run(new ServiceRequest('unknown', '/'));
     }
 
-    public function router(): string
+    public function testHttpService(): void
     {
-        return '/hello';
+        $launcher = new Launcher([
+            'services' => [
+                ['name' => 'http-test', 'target' => ['http://service.test'], 'type' => 'http'],
+            ],
+        ]);
+        $request = new ServiceRequest('http-test', '/test.php');
+        $handler = new MockHandler([new Response(200, [], 'ok')]);
+        $request->options = ['handler' => $handler];
+        $request->setParams(['id' => 42]);
+
+        $result = $launcher->run($request);
+
+        self::assertSame('ok', (string) $result->getBody());
+        self::assertSame('http://service.test/test.php?id=42', (string) $handler->getLastRequest()->getUri());
     }
 
-    public function method(): string
+    public function testLoadServiceAfterConstructionUsesTheNewTarget(): void
     {
-        return 'GET';
+        $launcher = new Launcher();
+        $launcher->loadService([['name' => 'orders', 'type' => 'http', 'target' => ['http://orders.test']]]);
+        $request = new ServiceRequest('orders', '/orders');
+        $transport = new MockHandler([new Response()]);
+        $request->options = ['handler' => $transport];
+
+        $launcher->run($request);
+        self::assertSame('http://orders.test/orders', (string) $transport->getLastRequest()->getUri());
     }
 }

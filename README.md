@@ -5,9 +5,23 @@ php、java之前的互相调用以实现架构的灵活扩展
 
 ### 安装
 
-```php
+```bash
 composer require xincheng/launcher
 ```
+
+### Ganesha 熔断器版本选择
+
+按运行 Launcher 的 PHP 版本选择依赖。在安装 Launcher 的项目根目录执行对应命令。
+
+| PHP 版本 | 推荐的 Ganesha 版本 | 使用方式 |
+| --- | --- | --- |
+| 7.4 | 2.x | `composer require "ackintosh/ganesha:^2.0" -W`。Launcher 的熔断中间件兼容 Guzzle Promises 1.x 和 2.x。 |
+| 8.0 | 3.2.x | `composer require "ackintosh/ganesha:^3.2" "guzzlehttp/guzzle:^7.10" -W` |
+| 8.1–8.5 | 4.x | `composer require "ackintosh/ganesha:^4.0" "guzzlehttp/guzzle:^7.10" -W` |
+
+缓存可以在构造 `Launcher` 时传入，也可以通过 `setCache()` 设置。普通服务发现缓存只需实现 `CacheInterface` 的四个方法。启用 HTTP 熔断时，将 `properties.circuitbreaker.open` 设为 `true`，并在缓存类上额外提供公共方法 `getRedis()`，返回已连接的 Redis 客户端。
+
+HTTP 熔断按配置的服务名累计请求。连接失败和 HTTP 5xx 计为失败，HTTP 4xx 保留原有响应或异常行为。熔断期间，支持降级的请求调用 `fallback()`，其余请求抛出 `ServiceRejectedException`。
 
 ### 基础配置
 
@@ -110,9 +124,8 @@ class LauncherDelegate extends Component
      */
     public function init()
     {
-        $launcherCache  = new LauncherCache()
-        $this->launcher = new Launcher($this->properties,$launcherCache);
-        $this->launcher->setCache($launcherCache);
+        $launcherCache = new LauncherCache();
+        $this->launcher = new Launcher($this->properties, $launcherCache);
     }
 
     /**
